@@ -6,120 +6,64 @@
 <title>Indic Letters</title>
 <meta name="description" content="Consonant sounds of 15 Indic languages, laid out by where the mouth makes them, with audio and side-by-side comparison.">
 <style>:root{color-scheme:light}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
-
-<!-- PROTOTYPE — throwaway. Three variants of the Indic sound chart, switch with the bottom bar or #A #B #C. Sounds: espeak-ng, pre-rendered. -->
+<!-- Indic Letters: page body. build/export.py prepends head.html. Data: core.js + lang/<id>.json -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Noto+Sans:wght@400;600&family=Noto+Sans+Devanagari:wght@500&family=Noto+Sans+Bengali:wght@500&family=Noto+Sans+Gurmukhi:wght@500&family=Noto+Sans+Gujarati:wght@500&family=Noto+Sans+Oriya:wght@500&family=Noto+Sans+Tamil:wght@500&family=Noto+Sans+Telugu:wght@500&family=Noto+Sans+Kannada:wght@500&family=Noto+Sans+Malayalam:wght@500&family=Noto+Sans+Sinhala:wght@500&display=swap">
 <style>
-/* Layout: a working instrument. Header with home + slider, then one of three chart variants. Tile tints = sound family, glyph colour = language. */
+/* Layout: compact controls, then the chart: a mouth panel on the left, eight fixed sound columns on the right. Tints = how the air moves; glyph colour = language. */
 :root{
-  --bg:#f3f4f1; --panel:#fbfbf9; --fg:#1d2321; --muted:#66706b; --line:#cfd4cf; --accent:#1f6f5c; --warn:#b4541a;
-  --gL:.50; --gC:.15;
+  --bg:#f3f4f1; --panel:#fbfbf9; --fg:#1d2321; --muted:#66706b; --label:#495350; --line:#cfd4cf; --accent:#1f6f5c; --warn:#b4541a;
+  --gL:.44; --gC:.15; --tc:transparent;
   --f-plain:#e6e9e4; --f-puff:#f3e6cf; --f-buzz:#dbe7f2; --f-bp:#e6dcf0; --f-nose:#f2dcdc; --f-roll:#dcefe6; --f-smooth:#e9efd6; --f-hiss:#f1e4ea;
-  --display:"Bricolage Grotesque", "Noto Sans", system-ui, sans-serif;
-  --body:"Noto Sans", system-ui, sans-serif;
-  --indic:"Noto Sans Devanagari","Noto Sans Bengali","Noto Sans Gurmukhi","Noto Sans Gujarati","Noto Sans Oriya","Noto Sans Tamil","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Malayalam","Noto Sans Sinhala", system-ui, sans-serif;
+  --display:"Bricolage Grotesque","Noto Sans",system-ui,sans-serif;
+  --body:"Noto Sans",system-ui,sans-serif;
+  --indic:"Noto Sans Devanagari","Noto Sans Bengali","Noto Sans Gurmukhi","Noto Sans Gujarati","Noto Sans Oriya","Noto Sans Tamil","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Malayalam","Noto Sans Sinhala",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#151a18; --panel:#1c2220; --fg:#e7ebe8; --muted:#97a19c; --line:#343d39; --accent:#6cc7ad; --warn:#f0a060; --gL:.80; --gC:.12;
+  --bg:#151a18; --panel:#1c2220; --fg:#e7ebe8; --muted:#97a19c; --label:#aab3ae; --line:#343d39; --accent:#6cc7ad; --warn:#f0a060; --gL:.80; --gC:.12;
   --f-plain:#262c29; --f-puff:#352d20; --f-buzz:#1f2b36; --f-bp:#2c2436; --f-nose:#362426; --f-roll:#1f3129; --f-smooth:#2b3220; --f-hiss:#33242c; color-scheme:dark }}
 :root[data-theme="dark"]{
-  --bg:#151a18; --panel:#1c2220; --fg:#e7ebe8; --muted:#97a19c; --line:#343d39; --accent:#6cc7ad; --warn:#f0a060; --gL:.80; --gC:.12;
+  --bg:#151a18; --panel:#1c2220; --fg:#e7ebe8; --muted:#97a19c; --label:#aab3ae; --line:#343d39; --accent:#6cc7ad; --warn:#f0a060; --gL:.80; --gC:.12;
   --f-plain:#262c29; --f-puff:#352d20; --f-buzz:#1f2b36; --f-bp:#2c2436; --f-nose:#362426; --f-roll:#1f3129; --f-smooth:#2b3220; --f-hiss:#33242c; color-scheme:dark }
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px}
-.wrap{padding-inline:16px;padding-block:20px 96px;max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);margin:0;letter-spacing:-.01em;text-wrap:balance}
-.sub{color:var(--muted);margin:4px 0 0;max-width:62ch;line-height:1.5}
-.controls{display:flex;flex-direction:column;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
-.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.homes{display:flex;flex-wrap:wrap;gap:6px}
-.homes button{font:inherit;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:4px 10px;cursor:pointer}
-.homes button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.slide{display:flex;flex-direction:column;gap:6px}
-.slide input{width:100%;accent-color:var(--accent)}
-.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);gap:2px}
-.ticks span{flex:1;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ticks span.on{color:var(--fg);font-weight:600}
-.readout{font-size:13px;line-height:1.5}
-.readout b{font-weight:600}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
-.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px;border:1px solid var(--line);background:var(--f-plain)}
-.legend i.said{border:1.5px dashed var(--fg);background:transparent}
-.legend i.like{opacity:.4}
-.legend i.fill{background:oklch(var(--gL) var(--gC) 200)}
-.legend i.lost{opacity:.25}
-.legend i.some,.chip.hsome{background-image:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in oklab,var(--fg) 14%,transparent) 5px 6px)}
-.chip .frac{position:absolute;top:2px;right:6px;font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
-.chip .off{position:absolute;top:1px;left:6px;font-size:11px;font-weight:700;color:var(--warn)}
-.chip .ws{display:flex;gap:6px;font-size:10px}
-.chip .w{font:inherit;font-family:var(--indic);font-size:10px;background:none;border:0;color:var(--muted);text-decoration:underline dotted;cursor:pointer;padding:1px 2px;border-radius:3px}
-.chip .w.human::after{content:" ●";color:var(--accent);font-size:8px}
-.chip .w:hover{color:var(--fg)}
-.mslots .chip{height:auto;min-height:62px;padding-block:8px 6px;display:grid;justify-items:center;align-content:center;gap:2px}
-.chip .x{font-size:9px;line-height:1.1}
-.g{font-family:var(--indic);line-height:1}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.4}
+.wrap{padding-inline:16px;padding-block:16px 40px;max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.5vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2,h3{font-family:var(--display);font-weight:500;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;max-width:70ch;line-height:1.5;text-wrap:pretty}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* ---------- A: Mendeleev table ---------- */
-.ptable{position:relative;overflow-x:auto}
-.pgrid{display:grid;grid-template-columns:76px repeat(8,minmax(64px,1fr));gap:5px;min-width:660px}
-.colh{font-size:11px;color:var(--muted);text-align:center;align-self:end;padding-bottom:2px;letter-spacing:.04em}
-.rowh{font-size:12px;color:var(--muted);align-self:center;line-height:1.25}
-.tile{position:relative;aspect-ratio:1/1.05;border:1px solid var(--line);border-radius:6px;background:var(--fam);color:var(--fg);font:inherit;cursor:pointer;padding:4px 5px;display:grid;grid-template-rows:auto 1fr auto;text-align:left;transition:opacity .35s,transform .35s,border-color .35s}
-.tile .top{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
-.tile .ipa{font-family:var(--body);font-size:12px;color:var(--fg)}
-.tile .glyphs{position:relative;display:grid;place-items:center}
-.tile .glyphs .g{grid-area:1/1;font-size:clamp(20px,2.6vw,30px);transition:opacity .35s,transform .35s,color .35s}
-.tile .lab{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .ht{position:absolute;right:4px;bottom:15px;font-size:12px;opacity:0;transition:opacity .35s}
-.tile::after{content:"";position:absolute;inset:3px;border:1.5px dashed var(--fg);border-radius:4px;opacity:0;transition:opacity .35s;pointer-events:none}
-.tile.said::after{opacity:var(--fade)}
-.tile.like .g.h{opacity:calc(.25 + .15*var(--fade))}
-.tile.like .to{opacity:var(--fade)}
-.tile .to{position:absolute;left:5px;bottom:15px;font-size:10px;color:var(--muted);opacity:0}
-.tile.absent{background:transparent;border-style:dotted}
-.tile.absent .glyphs .g{opacity:0}
-.tile.filled{border-color:var(--tc)}
-.tile.filled .g.h{opacity:0}
-.tile.filled .g.t{opacity:1;color:var(--tc);animation:pop .45s}
-.tile.shared .g.h{opacity:0;transform:scale(.6)}
-.tile.shared .g.t{opacity:1}
-.tile.shared .ht{opacity:.6}
-.tile.lost{opacity:.3}
-.tile .g.t{opacity:0}
-.tile.playing{transform:scale(1.06);z-index:2;border-color:var(--accent)}
-@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
-.detached{display:grid;grid-template-columns:76px repeat(8,minmax(64px,1fr));gap:5px;margin-top:22px;min-width:660px}
-.detached .rowh{grid-column:1}
-.arrows{position:absolute;inset:0;pointer-events:none;overflow:visible}
-.arrows path{stroke:var(--muted);fill:none;stroke-width:1.4;opacity:var(--fade);transition:opacity .35s}
-.note{font-size:12px;color:var(--muted);max-width:70ch;line-height:1.5}
+/* controls */
+.controls{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--label);white-space:nowrap}
+.homes{display:flex;flex-wrap:wrap;gap:6px}
+.homes button{font:inherit;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:4px 10px;min-height:28px;cursor:pointer}
+.homes button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.slide{display:flex;flex-direction:column;gap:4px;min-width:0}
+.slide input{width:100%;accent-color:var(--accent);margin:0}
+.ticks{display:flex;justify-content:space-between;gap:4px;font-size:11px;color:var(--label)}
+.ticks span{flex:1;min-width:0;text-align:center;overflow-wrap:anywhere;cursor:pointer}
+.ticks span.on{color:var(--fg);font-weight:600}
+.readout{grid-column:1/-1;margin:0;font-size:13px;min-height:1.4em}
+.readout b{font-weight:600}
+.legend{grid-column:1/-1;font-size:12px;color:var(--label)}
+.legend summary{cursor:pointer;color:var(--fg);font-size:12px}
+.legend ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px}
+.legend i{display:inline-block;width:16px;height:16px;border-radius:4px;vertical-align:-3px;margin-inline-end:6px;border:1px solid var(--line);background:var(--f-plain)}
+.legend i.said{border:1.5px dashed var(--fg);background:transparent}
+.legend i.like{opacity:.4}
+.legend i.other{border:2px solid var(--accent)}
+.legend i.some{background-image:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in oklab,var(--fg) 14%,transparent) 5px 6px)}
+.legend b.bang{color:var(--warn);margin-inline-end:6px}
 
-/* ---------- B: Mouth ---------- */
-.mouth{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:18px;align-items:start}
-@media (max-width:720px){.mouth{grid-template-columns:1fr}.mouth .head{position:static}.ticks span{display:none}.ticks span.on{display:block;flex:none;width:100%;text-align:left}}
-.head{position:sticky;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+/* chart */
+.mouth{display:grid;grid-template-columns:minmax(200px,250px) 1fr;gap:16px;align-items:start}
+.head{position:sticky;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
 .head svg{width:100%;height:auto;display:block}
-.head .cap{font-size:13px;line-height:1.45;min-height:3em}
-.detail{display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.45;border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
-.detail .dh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.detail .big{font-family:var(--indic);font-size:40px;line-height:1}
-.detail .ipa{font-size:18px;font-weight:600}
-.detail .how{color:var(--muted)}
-.detail .lang{display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:8px;background:var(--bg)}
-.detail .lang b{font-family:var(--display);font-weight:500}
-.detail .acts{display:flex;flex-wrap:wrap;gap:6px}
-.detail .acts button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:2px 10px;cursor:pointer}
-.detail .src{width:100%;border-collapse:collapse;font-size:11px;color:var(--muted)}
-.detail .src td{padding:1px 4px;border-top:1px solid var(--line)}
-.detail .src td:first-child{white-space:nowrap}
-.detail .warn{color:var(--warn)}
-.detail .cred{font-size:11px;color:var(--muted)}
-.detail .cred a{color:inherit}
+.head .cap{font-size:13px;line-height:1.45;color:var(--muted);margin:0}
+.head .close{display:none}
 .head .skin{fill:none;stroke:var(--muted);stroke-width:2}
 .head .pal{fill:none;stroke:var(--fg);stroke-width:2.2}
-.head .tongue{fill:oklch(.72 .12 15);stroke:oklch(.5 .14 15);stroke-width:1.5;transition:d .45s cubic-bezier(.3,.7,.3,1)}
-.head .lip{fill:oklch(.68 .13 15);transition:d .35s}
 .head .nasal{fill:oklch(.7 .12 250);opacity:0;transition:opacity .3s}
 .head.nose .nasal{opacity:.55}
 .head .puff circle{fill:var(--muted);opacity:0}
@@ -129,135 +73,180 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);mar
 .head .buzz{stroke:var(--accent);stroke-width:2;fill:none;opacity:0}
 .head.buzz .buzz{animation:buzz .12s linear 6 alternate}
 @keyframes buzz{from{opacity:1;transform:translateX(-2px)}to{opacity:1;transform:translateX(2px)}}
-.head .place{fill:var(--muted)} .head .place.on{fill:var(--accent)}
-.head text{font-size:9px;fill:var(--muted);font-family:var(--body)}
-.rows{display:flex;flex-direction:column;gap:10px;min-width:0}
-.mrow{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
-.mrow .rl{font-family:var(--display);font-weight:500;font-size:15px;line-height:1.2}
-.mrow .rl small{display:block;font-family:var(--body);font-size:11px;color:var(--muted);font-weight:400}
-.mslots{display:flex;flex-wrap:wrap;gap:6px}
-.chip{position:relative;min-width:56px;height:62px;border-radius:12px;border:1px solid var(--line);background:var(--fam);color:var(--fg);cursor:pointer;font:inherit;padding:2px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:opacity .35s,border-color .35s,min-width .35s}
-.chip .pair{display:flex;align-items:center;gap:6px}
-.chip .g{font-size:24px;min-width:1em;text-align:center;transition:color .35s,opacity .35s}
+.head .place{fill:var(--muted);transition:r .25s}
+.head .place.on{fill:var(--accent);r:7}
+.head text{font-size:9px;fill:var(--label);font-family:var(--body)}
+.head text.on{fill:var(--fg);font-weight:600}
+
+.detail{display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.45;border-top:1px solid var(--line);padding-top:10px}
+.detail .dh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:16px}
+.detail .big{font-family:var(--indic);font-size:40px;line-height:1}
+.detail .ipa{font-family:var(--body);font-size:15px;font-weight:600;color:var(--muted)}
+.detail .how{margin:0;color:var(--muted)}
+.detail .lang{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.detail .lang h3{font-size:14px}
+.detail .lang p{margin:0}
+.detail .acts{display:flex;flex-wrap:wrap;gap:6px}
+.detail .acts button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:4px 10px;min-height:28px;cursor:pointer;text-align:left}
+.detail .warn{color:var(--warn)}
+.detail .cred{font-size:11px;color:var(--label)}
+.detail .cred a{color:inherit}
+.detail details{font-size:11px;color:var(--label)}
+.detail summary{cursor:pointer}
+.detail .src{width:100%;border-collapse:collapse;margin-top:4px}
+.detail .src td{padding:1px 4px;border-top:1px solid var(--line);vertical-align:top}
+.detail .src td:first-child{white-space:nowrap}
+
+.rows{display:flex;flex-direction:column;gap:6px;min-width:0}
+.colhead,.mrow{display:grid;grid-template-columns:104px repeat(8,minmax(0,1fr));gap:6px;align-items:start}
+.colhead{font-size:11px;color:var(--label);text-align:center;padding-bottom:2px;border-bottom:1px solid var(--line)}
+.colhead span:first-child{text-align:start}
+.mrow{padding:8px 0;border-bottom:1px solid var(--line)}
+.mrow.free{grid-template-columns:104px 1fr}
+.rl{display:flex;flex-direction:column;gap:4px;align-self:center;font-family:var(--display);font-weight:500;font-size:15px;line-height:1.2;min-width:0}
+.rl small{font-family:var(--body);font-size:11px;color:var(--label);font-weight:400}
+.rl .rowplay{align-self:flex-start}
+.rowplay{font:inherit;font-size:11px;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:3px 10px;min-height:24px;cursor:pointer}
+.mslots{display:contents}
+.mrow.free .mslots{display:flex;flex-wrap:wrap;gap:6px}
+.mrow.free .chip{width:96px}
+
+.chip{position:relative;min-height:70px;border-radius:10px;border:1px solid var(--line);background:var(--fam);padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;transition:border-color .2s,box-shadow .2s}
+.chip[hidden]{display:none}
+.chip .press{font:inherit;background:none;border:0;color:inherit;cursor:pointer;display:flex;align-items:center;gap:5px;padding:2px 4px;border-radius:6px;min-height:30px}
+.chip .g{font-family:var(--indic);font-size:22px;line-height:1;min-width:1em;text-align:center}
+.chip .g i,.detail .big i,.diff .g i{font-style:normal;font-family:var(--body);font-size:.65em;color:var(--label)}
 .chip .g.t,.chip .sep{display:none}
-.chip .m{font-size:9px;color:var(--muted)}
-.chip .x{display:none;font-size:9px;font-weight:600}
-.chip.solo.said{border:1.5px dashed var(--fg)}
-.chip.solo.like .g.h{opacity:.35}
-.chip.cmp{min-width:84px}
 .chip.cmp .g.t,.chip.cmp .sep{display:inline-block}
-.chip .sep{width:1px;height:22px;background:var(--line)}
-.chip.both{}
-.chip.gain{border:2px solid var(--tc);background:color-mix(in oklab,var(--tc) 14%,var(--fam))}
-.chip.gain .g.h{opacity:1;color:var(--muted)!important;font-size:16px}
-.chip.gain .x{display:block;color:var(--tc)}
-.chip.loss .g.t{color:var(--muted)!important;font-size:16px}
+.chip .sep{width:1px;height:20px;background:var(--line)}
+.chip .x{display:none;font-size:10px;line-height:1.15;text-align:center;font-weight:600;color:var(--label)}
+.chip .x:not(:empty){display:block}
+.chip .x span{font-family:var(--indic);font-size:13px}
+.chip .ws{display:flex;flex-wrap:wrap;justify-content:center;gap:0 4px}
+.chip .w{font:inherit;font-family:var(--indic);font-size:11px;background:none;border:0;color:var(--label);text-decoration:underline dotted;cursor:pointer;padding:3px 4px;min-height:24px;border-radius:4px}
+.chip .w:empty{display:none}
+.chip .w.robot::after{content:" ⚙";font-size:9px;text-decoration:none}
+.chip .m{font-size:11px;color:var(--label);margin-top:auto}
+.chip .frac{position:absolute;top:3px;right:6px;font-size:10px;color:var(--label);font-variant-numeric:tabular-nums}
+.chip .off{position:absolute;top:1px;left:6px;font-size:12px;font-weight:700;color:var(--warn)}
+.chip.hsaid .g.h{outline:1.5px dashed var(--fg);outline-offset:3px;border-radius:3px}
+.chip.hlike .g.h{opacity:.4}
+.chip.hsome{background-image:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in oklab,var(--fg) 14%,transparent) 5px 6px)}
+.chip.gain{border:2px solid var(--tc);background:color-mix(in oklab,var(--tc) 12%,var(--fam))}
+.chip.gain .g.h{color:var(--label);font-size:15px}
+.chip.gain .x{color:var(--label)}
 .chip.loss{border-style:dashed}
-.chip.loss .x{display:block;color:var(--muted)}
-.chip.none{display:none}
-.chip.hsaid .g.h{outline:1.5px dashed color-mix(in oklab,var(--fg) calc(var(--fade)*100%),transparent);outline-offset:2px;border-radius:3px}
-.chip.hlike .g.h{opacity:calc(.3 + .4*(1 - var(--fade)))}
+.chip.loss .g.t{color:var(--label);font-size:15px}
 .chip.playing{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
-.rowplay{font:inherit;font-size:11px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:2px 8px;cursor:pointer;margin-top:4px}
+
 .diff{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:560px){.diff{grid-template-columns:1fr}}
-.diff>div{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel);min-width:0}
-.diff h3{margin:0 0 6px;font-family:var(--display);font-weight:500;font-size:15px}
-.diff .list{display:flex;flex-wrap:wrap;gap:4px}
-.diff .list button{font:inherit;border:1px solid var(--line);border-radius:8px;background:transparent;cursor:pointer;padding:2px 7px;display:flex;flex-direction:column;align-items:center}
-.diff .list .g{font-size:20px}
-.diff .list small{font-size:10px;color:var(--muted)}
-.diff .empty{color:var(--muted);font-size:12px}
-.mextra{display:flex;flex-wrap:wrap;gap:6px}
+.diff[hidden]{display:none}
+.diff>section{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel);min-width:0}
+.diff h2{font-size:15px;margin-bottom:6px}
+.diff .list{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.diff .list button{font:inherit;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--fg);cursor:pointer;padding:3px 7px;min-height:40px;display:flex;flex-direction:column;align-items:center}
+.diff .list .g{font-family:var(--indic);font-size:20px;line-height:1.1}
+.diff .list small{font-size:10px;color:var(--label)}
+.diff .empty{color:var(--muted);font-size:12px;margin-bottom:6px}
+.note{font-size:12px;color:var(--label);max-width:72ch;line-height:1.5;margin:0}
+.note a{color:inherit}
 
-/* ---------- C: Score ---------- */
-.score{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
-.score table{border-collapse:collapse;font-size:13px;min-width:100%}
-.score th,.score td{padding:3px 4px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
-.score thead th{position:sticky;top:0;background:var(--panel);font-size:11px;font-weight:600;vertical-align:bottom;z-index:1}
-.score thead th .d{display:block;height:4px;margin:3px auto 0;background:var(--accent);border-radius:2px}
-.score th.rh{text-align:left;font-weight:400;position:sticky;left:0;background:var(--panel);z-index:1;cursor:pointer}
-.score th.rh .ipa{display:inline-block;width:2.4em;font-weight:600}
-.score th.rh .lab{color:var(--muted);font-size:11px}
-.score tr.pinned th.rh{color:var(--accent)} .score tr.pinned{background:color-mix(in oklab,var(--accent) 10%,transparent)}
-.score td{cursor:pointer;transition:opacity .3s}
-.score td .g{font-size:20px}
-.score td.like .g{opacity:.35} .score td.like small{color:var(--muted);font-size:10px;margin-left:2px}
-.score td.said{outline:1.5px dashed var(--muted);outline-offset:-4px}
-.score td.absent::after{content:"·";color:var(--line)}
-.score col.tgt,.score td.tgt,.score th.tgt{background:color-mix(in oklab,var(--accent) 14%,transparent)}
-.score td.home,.score th.home{box-shadow:inset 2px 0 0 var(--fg),inset -2px 0 0 var(--fg)}
-.score tr.grp th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--bg);padding-top:10px}
-
-/* ---------- switcher ---------- */
-[hidden]{display:none!important}
-.switch{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:4px;background:var(--fg);color:var(--bg);border-radius:999px;padding:5px;box-shadow:0 6px 24px rgb(0 0 0 / .25);z-index:10}
-.switch button{font:inherit;background:transparent;color:inherit;border:0;border-radius:999px;padding:6px 12px;cursor:pointer}
-.switch span{font-size:13px;padding:0 6px;white-space:nowrap}
+@media (max-width:980px){.mouth{grid-template-columns:minmax(180px,220px) 1fr}}
+@media (max-width:720px){
+  .controls{grid-template-columns:1fr}
+  .ticks span{display:none}.ticks span.on{display:block;text-align:start}
+  .mouth{grid-template-columns:1fr}
+  .rows{overflow-x:auto;padding-bottom:4px}
+  .colhead,.mrow{min-width:640px}
+  .rl,.colhead span:first-child{position:sticky;left:0;z-index:1;background:var(--bg);padding-inline-end:6px}
+  .diff{grid-template-columns:1fr}
+  .head{position:fixed;left:0;right:0;bottom:0;top:auto;max-height:60vh;overflow:auto;border-radius:12px 12px 0 0;box-shadow:0 -8px 28px rgb(0 0 0 / .25);padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
+  .head:not(.open){display:none}
+  .head svg,.head .cap{display:none}
+  .head .close{display:block;align-self:flex-end;font:inherit;font-size:12px;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:3px 10px;min-height:28px;cursor:pointer}
+  .detail{border-top:0;padding-top:0}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 <div class="wrap">
   <header>
     <h1>Indic Letters</h1>
-    <p class="sub">Consonant sounds of 15 Indic languages, laid out by where your mouth makes them. Pick your home language, then move the slider to compare it with the others, nearest-sounding first. Press a letter to hear both languages and see its details. Press a word to hear it in context.</p>
+    <p class="sub">The consonant sounds of 15 Indic languages, laid out by where your mouth makes them. Pick your home language, then slide to compare it with another. Press a letter to hear both and see what your mouth does.</p>
   </header>
-  <section class="controls" aria-label="Controls">
-    <div class="lbl">Home language</div>
-    <div class="homes" id="homes"></div>
-    <div class="slide">
-      <label class="lbl" for="slider">Compare with</label>
-      <input id="slider" type="range" min="0" max="14" step="0.01" value="0">
-      <div class="ticks" id="ticks"></div>
-    </div>
-    <div class="readout" id="readout"></div>
-    <div class="legend" id="legend"></div>
+  <section class="controls" aria-label="Choose languages">
+    <span class="lbl" id="homelbl">Home language</span>
+    <div class="homes" id="homes" role="group" aria-labelledby="homelbl"></div>
+    <label class="lbl" for="slider">Compare with</label>
+    <div class="slide"><input id="slider" type="range" min="0" max="14" step="0.01" value="0"><div class="ticks" id="ticks" aria-hidden="true"></div></div>
+    <p class="readout" id="readout" role="status"></p>
+    <details class="legend" id="legend"><summary>What the marks mean</summary>
+      <ul>
+        <li><i></i>the language has a letter for this sound</li>
+        <li><i class="said"></i>said, but not written with its own letter</li>
+        <li><i class="like"></i>written, but said like another letter</li>
+        <li><i class="some"></i>some speakers use it</li>
+        <li><i class="other"></i>the other language has it, yours does not</li>
+        <li><b class="bang">!</b>robot voice may be wrong; press to hear a real word</li>
+      </ul>
+    </details>
   </section>
-  <main id="stage"></main>
-  <p class="note">Prototype. Cell states come from PHOIBLE (1 to 5 descriptions per language). Bishnupriya has no PHOIBLE or Wiktionary data, so its cells come from espeak-ng alone. Letter sounds are espeak-ng; a <b>!</b> marks letters where espeak-ng disagrees with PHOIBLE, and pressing those plays the example word instead. Example words and their IPA come from Wiktionary (via kaikki.org); words marked ● are real speakers from Wikimedia Commons and Lingua Libre. <a href="credits.html">Credits and licenses</a> · <a href="https://github.com/micahchoo/indic-letters">Source</a></p>
+  <main id="stage" class="mouth">
+    <aside class="head" id="head" aria-label="Mouth and details">
+      <button class="close" type="button" id="closeHead">Close</button>
+      <svg viewBox="0 0 220 230" aria-hidden="true">
+        <path class="skin" d="M30,20 Q120,0 175,60 Q178,90 196,108 Q192,118 182,122 L182,132 M182,168 Q186,200 160,214 Q120,222 100,226"/>
+        <path class="nasal" d="M90,96 Q130,74 182,104 L176,114 Q130,90 92,108 Z"/>
+        <path class="pal" d="M50,150 Q58,118 86,112 Q110,100 140,108 Q156,116 160,128 L164,142"/>
+        <path class="pal" d="M150,214 L152,198 Q156,188 164,186 L166,176"/>
+        <g class="puff"><circle cx="196" cy="150" r="3"/><circle cx="200" cy="144" r="2.4"/><circle cx="200" cy="156" r="2"/></g>
+        <path class="buzz" d="M40,190 l6,-6 l6,12 l6,-12 l6,12 l6,-6"/>
+        <g id="places"></g>
+      </svg>
+      <p class="cap" id="cap">Press a letter. The dot shows where the sound is made.</p>
+      <div class="detail" id="detail" hidden></div>
+    </aside>
+    <div class="rows" id="rows"></div>
+  </main>
+  <p class="note">Which sounds each language has comes from PHOIBLE (1 to 5 descriptions per language). Letter sounds are a robot voice (espeak-ng). Example words and their meanings come from Wiktionary; words without ⚙ are real speakers from Wikimedia Commons and Lingua Libre. Bishnupriya has no PHOIBLE or Wiktionary data, so its cells come from the robot voice alone. <a href="credits.html">Credits and licenses</a> · <a href="https://github.com/micahchoo/indic-letters">Source</a></p>
+  <div class="sr" id="announce" role="status" aria-live="polite"></div>
 </div>
-<nav hidden class="switch" aria-label="Prototype variants"><button id="prev" aria-label="Previous variant">←</button><span id="vlabel"></span><button id="next" aria-label="Next variant">→</button></nav>
 
 <script src="core.js"></script>
 <script>
 const D=window.CORE, AU={};
 D.cells.forEach(c=>{if(typeof c.row==='string')c.row=D.rows.indexOf(c.row)});
 const V=Object.fromEntries(D.voices.map((v,i)=>[v.id,{...v,hue:(i*360/15+15)%360,cells:null,near:{}}]));
-const loading={};
-function load(v){ if(V[v].cells) return Promise.resolve(); return loading[v]||(loading[v]=fetch('lang/'+v+'.json').then(r=>r.json()).then(j=>{V[v].cells=j.cells;V[v].near=j.near;Object.assign(AU,j.audio)})); }
-const ensure=()=>Promise.all([load(S.home),load(tgt())]);
 const C=Object.fromEntries(D.cells.map(c=>[c.id,c]));
-const VARIANTS={A:'Mendeleev table',B:'Mouth',C:'Score'};
 const FAM=['plain','puff','buzz','bp','nose','roll','smooth','hiss'];
-const BLOCKS={loans:'Borrowed from Persian & Arabic',dravidian:'Dravidian specials',affricate:'Stop + hiss',sinhala:'Sinhala: nose before stop'};
-const S={home:'hi',p:0,pinned:null,variant:('B').toUpperCase()};
-if(!VARIANTS[S.variant])S.variant='A';
+const rowWords={throat:'open throat',back:'back of tongue, soft roof',roof:'flat tongue, hard roof',curled:'tongue tip curled back',teeth:'tongue tip on teeth',lips:'both lips'};
+const HOW=['the air is stopped, then let go','stopped, then let go with a puff of air','stopped, with the throat buzzing','buzzing, then a breathy puff','the air goes out through the nose','the tongue tip taps or rolls','the air flows smoothly around the tongue','the air rubs through a narrow gap'];
+const PLACE={throat:[58,190],back:[86,116],roof:[118,106],curled:[138,118],teeth:[164,140],lips:[178,150]};
+const PLACE_OF={n15:'back',n16:'back',n17:'back',n1C:'teeth',n2B:'lips',n21:'curled',n22:'curled','0x34':'curled','0x31':'teeth','0x29':'teeth',ts:'teeth',dz:'teeth',ng:'back','nd.':'curled',nd:'teeth',mb:'lips'};
+const S={home:'hi',p:0}; let selected=null;
+try{const h=localStorage.getItem('varna-home');if(h&&V[h])S.home=h}catch(e){}
 
-
+const loading={};
+function load(v){ if(V[v].cells) return Promise.resolve(); return loading[v]||(loading[v]=fetch('lang/'+v+'.json').then(r=>r.json()).then(j=>{V[v].cells=j.cells;V[v].near=j.near||{};Object.assign(AU,j.audio)})); }
+const ensure=()=>Promise.all([load(S.home),load(tgt())]);
 const has=x=>x&&(x.s==='own'||x.s==='said'||x.s==='some');
 const order=()=>D.voices.map(v=>v.id).sort((a,b)=>(a===S.home?-1:b===S.home?1:D.dist[S.home][a]-D.dist[S.home][b]));
 const tgt=()=>order()[Math.round(S.p)];
-const fade=()=>Math.max(0,1-D.dist[S.home][tgt()]/0.45);
-const count=id=>D.voices.filter(v=>has(v.cells[id])).length;
 const col=v=>`oklch(var(--gL) var(--gC) ${V[v].hue})`;
-const label=c=>c.label||`${D.rows[c.row]} · ${D.cols[c.col]}`;
-const rowWords={throat:'open throat',back:'back of tongue, soft roof',roof:'flat tongue, hard roof',curled:'tongue tip curled back',teeth:'tongue tip on teeth',lips:'both lips'};
-
-function view(id){
-  const H=V[S.home].cells[id], T=tgt(); const Tc=V[T].cells[id];
-  if(T===S.home) return {k:H?H.s:'absent',H,T:null};
-  if(has(H)&&has(Tc)) return {k:'shared',H,T:Tc,tv:T, hk:H.s};
-  if(!has(H)&&has(Tc)) return {k:'filled',H,T:Tc,tv:T, hk:H?H.s:''};
-  if(has(H)&&!has(Tc)) return {k:'lost',H,T:Tc,tv:T, hk:H.s};
-  return {k:H?H.s:'absent',H,T:null};
-}
+const label=c=>c.label||`${rowWords[D.rows[c.row]]}; ${HOW[c.col]}`;
+const colName=c=>c.col!=null?D.cols[c.col]:c.ipa;
+const closeness=d=>d<.12?'very close':d<.3?'fairly close':d<.6?'quite different':'far apart';
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const glyph=(x,v)=>!x?'—':x.ch?`<span lang="${v}">${esc(x.ch)}</span>`:`<i>${esc(x.ipa)}</i>`;
+const wordHTML=(x,v)=>x&&x.word?`<span lang="${v}">${esc(x.word.w)}</span>`:'';
+const noSlash=s=>s.replace(/^\/|\/$/g,'');
 
 // ---------- audio ----------
 let cur=null;
 function playSeq(list,el){
   if(cur){cur.pause();cur=null}
   const go=i=>{ if(i>=list.length){el&&el.classList.remove('playing');return}
-    const [v,id,useWord]=list[i]; const c=V[v].cells[id]; if(!c){go(i+1);return}
+    const [v,id,useWord]=list[i]; const c=V[v].cells&&V[v].cells[id]; if(!c){go(i+1);return}
     const key=(useWord||c.off||!c.a)&&c.word?c.word.a:c.a; if(!key||!AU[key]){go(i+1);return}
     cur=new Audio('data:audio/mpeg;base64,'+AU[key]); el&&el.classList.add('playing');
     cur.onended=()=>setTimeout(()=>go(i+1),180); cur.play().catch(()=>{el&&el.classList.remove('playing')}); };
@@ -267,215 +256,127 @@ function press(id,el){
   const T=tgt(), list=[];
   if(V[S.home].cells[id]) list.push([S.home,id]);
   if(T!==S.home && V[T].cells[id]) list.push([T,id]);
-  playSeq(list,el); if(S.variant==='B'){ moveMouth(id); showDetail(id); }
+  playSeq(list,el); moveMouth(id); showDetail(id);
 }
 
-// ---------- header ----------
+// ---------- controls ----------
 function header(){
-  homes.innerHTML=D.voices.map(v=>`<button aria-pressed="${v.id===S.home}" data-h="${v.id}">${v.name}</button>`).join('');
-  const o=order(); ticks.innerHTML=o.map((v,i)=>`<span data-i="${i}">${i===0?'● ':''}${V[v].name}</span>`).join('');
-  legend.innerHTML=`<span><i></i>has a letter</span><span><i class="said"></i>said, not written</span><span><i class="like"></i>written, said like another</span><span><i class="fill"></i>gap filled by the other language</span><span><i class="lost"></i>the other language lacks it</span><span><i class="some"></i>some speakers (n of m descriptions)</span><span><b style="color:var(--warn)">!</b> espeak-ng audio may be off</span>`;
+  homes.innerHTML=D.voices.map(v=>`<button type="button" aria-pressed="${v.id===S.home}" data-h="${v.id}">${v.name}</button>`).join('');
+  ticks.innerHTML=order().map((v,i)=>`<span data-i="${i}">${V[v].name}</span>`).join('');
 }
-function updateReadout(){ const readout=document.getElementById('readout');
+function updateReadout(){
   const T=tgt(); ticks.querySelectorAll('span').forEach((s,i)=>s.classList.toggle('on',i===Math.round(S.p)));
   const H=V[S.home].cells, Tc=V[T].cells;
   if(T===S.home){ const n=Object.values(H).filter(has).length;
-    readout.innerHTML=`<b>${V[S.home].name}</b> makes <b>${n}</b> of these ${D.cells.length} sounds. Drag the slider to see what the others add.`;return}
+    readout.innerHTML=`<b>${V[S.home].name}</b> makes <b>${n}</b> of these ${D.cells.length} sounds. Slide to see what another language adds.`;return}
   const gain=D.cells.filter(c=>!has(H[c.id])&&has(Tc[c.id])).length, loss=D.cells.filter(c=>has(H[c.id])&&!has(Tc[c.id])).length;
-  readout.innerHTML=`<b>${V[T].name}</b> fills <b>${gain}</b> gaps in ${V[S.home].name} and lacks <b>${loss}</b> of its sounds. Sound distance ${(D.dist[S.home][T]*100).toFixed(0)}%.`;
+  readout.innerHTML=`<b>${V[T].name}</b> adds <b>${gain}</b> sound${gain===1?'':'s'} ${V[S.home].name} lacks, and lacks <b>${loss}</b> of its sounds. The two are ${closeness(D.dist[S.home][T])} in sound.`;
 }
 
-// ---------- A ----------
-function tileHTML(c,cls='tile'){return `<button class="${cls}" data-id="${c.id}" style="--fam:var(--f-${FAM[c.col]??'plain'})" aria-label="${c.ipa}, ${label(c)}">
-  <span class="top"><span class="n"></span><span class="ipa">${c.ipa}</span></span>
-  <span class="glyphs"><span class="g h"></span><span class="g t"></span></span><span class="ht g"></span><span class="to"></span>
-  <span class="lab">${label(c)}</span></button>`}
-function renderA(){
-  let h='<div class="ptable" id="pt"><div class="pgrid"><div></div>'+D.cols.map(c=>`<div class="colh">${c}</div>`).join('');
-  D.rows.forEach((r,ri)=>{ h+=`<div class="rowh">${rowWords[r]}</div>`;
-    for(let ci=0;ci<8;ci++){ const c=D.cells.find(x=>x.block==='main'&&x.row===ri&&x.col===ci); h+=c?tileHTML(c):'<div></div>' } });
-  h+='</div><div class="detached">';
-  for(const b in BLOCKS){ h+=`<div class="rowh">${BLOCKS[b]}</div>`; const cs=D.cells.filter(c=>c.block===b);
-    cs.forEach(c=>h+=tileHTML(c)); for(let i=cs.length;i<8;i++)h+='<div></div>' }
-  h+='</div><svg class="arrows" id="arrows"></svg></div>';
-  stage.innerHTML=h;
-}
-function updateTiles(sel){
-  stage.style.setProperty('--fade',fade().toFixed(3));
-  stage.querySelectorAll(sel).forEach(el=>{ const id=el.dataset.id, v=view(id);
-    el.className=el.className.split(' ')[0]+' '+v.k+(v.hk==='said'?' said':'');
-    const hg=v.H?v.H.ch:'', tg=v.T?v.T.ch:'';
-    const q=s=>el.querySelector(s);
-    if(q('.g.h')){ q('.g.h').textContent=hg.length>2?hg.slice(0,2)+'…':hg; q('.g.h').style.color=v.H?col(S.home):'';
-      q('.g.t').textContent=tg; q('.g.t').style.color=v.tv?col(v.tv):'';
-      q('.ht').textContent=v.k==='shared'?hg:''; q('.n').textContent=count(id)+'/15';
-      q('.to').textContent=v.H&&v.H.s==='like'?'→ '+C[v.H.to].ipa:'';
-      if(v.H&&v.H.s==='said'&&v.H.word&&v.k!=='shared'){q('.g.h').textContent=v.H.ch.length>3?'…':v.H.ch}
-    } else { const g=el.querySelector('.g'); const show=v.T&&(v.k==='filled'||v.k==='shared')?v.T:v.H;
-      g.textContent=show?(show.word?show.ch.slice(0,3):show.ch):''; g.style.color=show===v.T&&v.tv?col(v.tv):col(S.home) }
-    el.style.setProperty('--tc',v.tv?col(v.tv):'transparent');
-    el.title=[v.H&&v.H.word?`${V[S.home].name}: ${v.H.ch} (${v.H.word})`:'', v.H&&v.H.note||'', v.H&&v.H.s==='like'?`${V[S.home].name} says ${v.H.ch} like ${C[v.H.to].ipa}`:''].filter(Boolean).join('\n');
-  });
-}
-function drawArrows(){
-  const svg=document.getElementById('arrows'); if(!svg)return; const box=document.getElementById('pt').getBoundingClientRect();
-  let p=''; for(const [id,c] of Object.entries(V[S.home].cells)){ if(c.s!=='like')continue;
-    const a=stage.querySelector(`[data-id="${id}"]`), b=stage.querySelector(`[data-id="${c.to}"]`); if(!a||!b)continue;
-    const r1=a.getBoundingClientRect(), r2=b.getBoundingClientRect();
-    const x1=r1.left-box.left+r1.width/2, y1=r1.top-box.top+r1.height/2, x2=r2.left-box.left+r2.width/2, y2=r2.top-box.top+r2.height/2;
-    const mx=(x1+x2)/2+(y2-y1)*.18, my=(y1+y2)/2-(x2-x1)*.18;
-    p+=`<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" marker-end="url(#ah)"/>` }
-  svg.innerHTML=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8" style="stroke:var(--muted);fill:none"/></marker></defs>`+p;
-}
-
-// ---------- B ----------
-const TONGUE={rest:[70,165,130,160,155,180,140,198],throat:[52,175,118,178,150,186,138,200],back:[60,118,112,150,155,180,140,198],
-  roof:[72,160,105,112,156,176,140,198],curled:[70,172,118,162,136,124,150,186],teeth:[70,172,120,156,163,147,150,192],lips:[70,165,130,160,155,180,140,198]};
-const PLACE={throat:[58,190],back:[86,116],roof:[118,106],curled:[138,118],teeth:[164,140],lips:[178,150]};
-const tPath=a=>`path("M55,208 C${a[0]},${a[1]} ${a[2]},${a[3]} ${a[4]},${a[5]} Q${a[6]},${a[7]} 110,208 Z")`;
-const lipU=c=>`path("M168,${c?140:136} q14,0 14,${c?10:6} q-8,3 -14,${c?2:0} Z")`, lipL=c=>`path("M168,${c?152:160} q14,0 14,${c?-1:6} q-6,8 -14,6 Z")`;
-function renderB(){
-  let h=`<div class="mouth"><div class="head" id="head"><svg viewBox="0 0 220 230" aria-label="Side view of the mouth">
-   <path class="skin" d="M30,20 Q120,0 175,60 Q178,90 196,108 Q192,118 182,122 L182,132 M182,168 Q186,200 160,214 Q120,222 100,226"/>
-   <path class="nasal" d="M90,96 Q130,74 182,104 L176,114 Q130,90 92,108 Z"/>
-   <path class="pal" d="M50,150 Q58,118 86,112 Q110,100 140,108 Q156,116 160,128 L164,142"/>
-   <path class="pal" d="M150,214 L152,198 Q156,188 164,186 L166,176"/>
-   <path class="tongue" id="tg" style="d:${tPath(TONGUE.rest)}"/>
-   <path class="lip" id="lu" style="d:${lipU(0)}"/><path class="lip" id="ll" style="d:${lipL(0)}"/>
-   <g class="puff"><circle cx="196" cy="150" r="3"/><circle cx="200" cy="144" r="2.4"/><circle cx="200" cy="156" r="2"/></g>
-   <path class="buzz" d="M40,190 l6,-6 l6,12 l6,-12 l6,12 l6,-6"/>
-   ${Object.entries(PLACE).map(([k,[x,y]])=>`<circle class="place" data-p="${k}" cx="${x}" cy="${y}" r="3.5"/><text x="${x-(k==='lips'?24:10)}" y="${y+(k==='throat'?16:-8)}">${k}</text>`).join('')}
-  </svg><div class="cap" id="cap">Press a letter. The tongue moves to where the sound is made, and its details show here.</div><div class="detail" id="detail" hidden></div></div><div class="rows"><div class="diff" id="diff"></div>`;
-  D.rows.forEach((r,ri)=>{ h+=`<div class="mrow"><div class="rl">${r}<small>${rowWords[r]}</small><button class="rowplay" data-row="${ri}">▶ row</button></div><div class="mslots">`;
+// ---------- chart ----------
+const chipHTML=c=>`<div class="chip" data-id="${c.id}" style="--fam:var(--f-${FAM[c.col]??'plain'})${c.col!=null?`;grid-column:${c.col+2}`:''}">
+  <button class="press" type="button" aria-label="${esc(c.ipa)}, ${esc(label(c))}"><span class="g h"></span><span class="sep"></span><span class="g t"></span></button>
+  <span class="x"></span>
+  <span class="ws"><button class="w h" type="button"></button><button class="w t" type="button"></button></span>
+  <span class="m">${esc(colName(c))}</span><span class="frac"></span><span class="off" aria-hidden="true"></span></div>`;
+function renderRows(){
+  let h=`<div class="diff" id="diff" hidden></div><div class="colhead" aria-hidden="true"><span></span>${D.cols.map(c=>`<span>${c}</span>`).join('')}</div>`;
+  D.rows.forEach((r,ri)=>{ h+=`<div class="mrow"><h2 class="rl">${r}<small>${rowWords[r]}</small><button class="rowplay" type="button" data-row="${ri}">▶ Play row</button></h2><div class="mslots">`;
     D.cells.filter(c=>c.block==='main'&&c.row===ri).sort((a,b)=>a.col-b.col).forEach(c=>h+=chipHTML(c)); h+='</div></div>' });
-  h+=`<div class="mrow"><div class="rl">Extras<small>borrowed and rare sounds</small></div><div class="mslots">`+D.cells.filter(c=>c.block!=='main').map(c=>chipHTML(c)).join('')+'</div></div></div></div>';
-  stage.innerHTML=h;
-}
-const chipHTML=c=>`<div class="chip" role="button" tabindex="0" data-id="${c.id}" style="--fam:var(--f-${FAM[c.col]??'plain'})" aria-label="${c.ipa}, ${label(c)}"><span class="pair"><span class="g h"></span><span class="sep"></span><span class="g t"></span></span><span class="x"></span><span class="ws"><button class="w h" type="button"></button><button class="w t" type="button"></button></span><span class="m">${c.col!=null?D.cols[c.col]:c.ipa}</span><span class="frac"></span><span class="off"></span></div>`;
-const short=x=>x?(x.ch||'◌'):'';
-const HOW=['the air is stopped, then let go','stopped, then let go with a puff of air','stopped, with the throat buzzing','buzzing, then a breathy puff','the air goes out through the nose','the tongue tip taps or rolls','the air flows smoothly around the tongue','the air rubs through a narrow gap'];
-let selected=null;
-try{const h=localStorage.getItem('varna-home');if(h&&V[h])S.home=h}catch(e){}
-function langBlock(v,id){
-  const L=V[v], c=L.cells[id], nm=L.name, ce=C[id];
-  let say='';
-  if(!c){ const n=L.near&&L.near[id]; const nc=n&&L.cells[n];
-    say=`${nm} does not have this sound.`+(nc?` A ${nm} speaker will probably hear it as <span class="g">${short(nc)}</span> (${C[n].ipa}).`:''); }
-  else if(c.s==='own') say=`${nm} writes this sound with <span class="g">${c.ch}</span>.`;
-  else if(c.s==='said') say=`${nm} says this sound but has no letter of its own for it`+(c.word?`. You hear it in <span class="g">${c.word.w}</span> /${c.word.ipa.replace(/^\/|\/$/g,'')}/.`:'.');
-  else if(c.s==='some') say=`Only ${c.k} of ${c.n} descriptions of ${nm} list this sound. Some speakers use it, often in borrowed words.`;
-  else if(c.s==='like') say=`${nm} writes <span class="g">${c.ch}</span>, but speakers say it like ${C[c.to].ipa}.`;
-  const acts=[]; if(c&&c.a&&AU[c.a]) acts.push(`<button data-dl="${v}">▶ letter${c.off?' (espeak-ng, may be off)':''}</button>`);
-  if(c&&c.word&&AU[c.word.a]) acts.push(`<button data-dw="${v}">▶ ${c.word.w}${c.word.human?' ● real speaker':''}</button>`);
-  const vt=c&&c.votes; const src=vt?`<table class="src"><tr><td>PHOIBLE</td><td>${vt.phoible} descriptions list it${vt.allo?' (also as a variant)':''}</td></tr>${vt.espeak!=null?`<tr><td>espeak-ng</td><td>plays ${vt.espeak||'?'}</td></tr>`:''}${vt.epitran!=null?`<tr><td>Epitran</td><td>reads ${vt.epitran||'?'}</td></tr>`:''}${c.word?`<tr><td>Wiktionary</td><td>${c.word.w} /${c.word.ipa.replace(/^\/|\/$/g,'')}/ ${c.word.gl}</td></tr>`:''}${c.hand?'<tr><td>hand fix</td><td>PHOIBLE notation hides this sound</td></tr>':''}</table>`:'';
-  return `<div class="lang"><b>${nm}</b><div>${say}</div>${c&&c.off?`<div class="warn">! ${c.off}</div>`:''}<div class="acts">${acts.join('')}</div>${c&&c.word&&c.word.credit?`<div class="cred">Recording of ${c.word.w}: ${c.word.credit.artist}, <a href="${c.word.credit.page}" target="_blank" rel="noopener">${c.word.credit.license}</a></div>`:''}${src}</div>`;
-}
-function showDetail(id){
-  selected=id; const el=document.getElementById('detail'); if(!el)return; const c=C[id], T=tgt();
-  const how=c.col!=null?`${rowWords[D.rows[c.row]]}; ${HOW[c.col]}.`:c.label+'.';
-  const H=V[S.home].cells[id], Tc=T!==S.home?V[T].cells[id]:null;
-  el.innerHTML=`<div class="dh"><span class="big">${H?short(H):'—'}${T!==S.home?` <span style="color:${col(T)}">${Tc?short(Tc):'—'}</span>`:''}</span><span class="ipa">${c.ipa}</span></div><div class="how">${how}</div>${langBlock(S.home,id)}${T!==S.home?langBlock(T,id):''}`;
-  el.hidden=false; document.getElementById('cap').hidden=true;
-}
-function reorder(){
-  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  stage.querySelectorAll('.mslots').forEach(box=>{
-    const chips=[...box.children]; const before=new Map(chips.map(ch=>[ch,ch.getBoundingClientRect()]));
-    chips.forEach(ch=>{ch.style.order=ch.classList.contains('gain')?1:ch.classList.contains('loss')?2:0});
-    if(reduce)return;
-    chips.forEach(ch=>{const a=before.get(ch),b=ch.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;
-      if(dx||dy){ch.style.transition='none';ch.style.transform=`translate(${dx}px,${dy}px)`;requestAnimationFrame(()=>{ch.style.transition='transform .45s cubic-bezier(.3,.7,.3,1)';ch.style.transform=''})}});
-  });
+  h+=`<div class="mrow free"><h2 class="rl">extras<small>borrowed and rare sounds</small></h2><div class="mslots">`+D.cells.filter(c=>c.block!=='main').map(c=>chipHTML(c)).join('')+'</div></div>';
+  rows.innerHTML=h;
+  places.innerHTML=Object.entries(PLACE).map(([k,[x,y]])=>`<circle class="place" data-p="${k}" cx="${x}" cy="${y}" r="3.5"/><text data-p="${k}" x="${x-(k==='lips'?24:10)}" y="${y+(k==='throat'?16:-8)}">${k}</text>`).join('');
 }
 function updateChips(){
-  stage.style.setProperty('--fade',fade().toFixed(3));
   const T=tgt(), cmp=T!==S.home;
-  stage.querySelectorAll('.chip').forEach(el=>{ const id=el.dataset.id, H=V[S.home].cells[id], Tc=cmp?V[T].cells[id]:null;
+  document.body.style.setProperty('--tc',cmp?col(T):'transparent');
+  rows.querySelectorAll('.chip').forEach(el=>{ const id=el.dataset.id, H=V[S.home].cells[id], Tc=cmp?V[T].cells[id]:null;
     const h=has(H), t=has(Tc); let k;
     if(!cmp) k=H?'solo':'none'; else k=h&&t?'both':t?'gain':h?'loss':(H||Tc?'both':'none');
-    el.className='chip '+k+(cmp?' cmp':' solo')+(H?' h'+H.s:'')+(!cmp&&H?' '+H.s:'');
-    const gh=el.querySelector('.g.h'), gt=el.querySelector('.g.t'), x=el.querySelector('.x');
-    gh.textContent=H?short(H):'—'; gh.style.color=H?'var(--fg)':'';
-    gt.textContent=Tc?short(Tc):'—'; gt.style.color=Tc?col(T):'';
-    el.style.setProperty('--tc',cmp?col(T):'transparent');
-    const fr=[H,Tc].filter(z=>z&&z.s==='some').map(z=>z.k?z.k+'/'+z.n:'letter only'); el.querySelector('.frac').textContent=fr.join(' ');
+    el.className='chip '+k+(cmp?' cmp':'')+(H?' h'+H.s:'');
+    el.hidden=(k==='none');
+    const q=s=>el.querySelector(s);
+    q('.g.h').innerHTML=glyph(H,S.home); q('.g.h').style.color=H?'var(--fg)':'';
+    q('.g.t').innerHTML=glyph(Tc,T); q('.g.t').style.color=Tc?col(T):'';
+    const fr=[H,Tc].filter(z=>z&&z.s==='some').map(z=>z.k?z.k+'/'+z.n:'letter only'); q('.frac').textContent=fr.join(' ');
+    q('.frac').title=fr.length?'how many descriptions of the language list this sound':'';
     if(H&&H.s==='some'||Tc&&Tc.s==='some') el.classList.add('hsome');
-    el.querySelector('.off').textContent=(H&&H.off)||(Tc&&Tc.off)?'!':'';
-    const wset=(sp,z,v)=>{ if(z&&z.word){sp.textContent=z.word.w;sp.dataset.wv=v;sp.dataset.wc=id;sp.classList.toggle('human',!!z.word.human);sp.hidden=false}else{sp.textContent='';sp.hidden=true} };
-    wset(el.querySelector('.w.h'),H,S.home); wset(el.querySelector('.w.t'),cmp?Tc:null,T);
-    x.textContent=k==='gain'?(H&&H.s==='like'?`${V[S.home].name} says it like ${C[H.to].ipa}`:`not in ${V[S.home].name}`):k==='loss'?(Tc&&Tc.s==='like'?`${V[T].name} says it like ${C[Tc.to].ipa}`:`not in ${V[T].name}`):'';
-    el.title=[H&&H.word?`${V[S.home].name}: ${H.ch} (${H.word})`:'',H&&H.note||'',H&&H.s==='like'?`${V[S.home].name} says ${H.ch} like ${C[H.to].ipa}`:'',H&&H.off?`${V[S.home].name}: ${H.off}`:'',Tc&&Tc.off?`${V[T].name}: ${Tc.off}`:'',H&&H.s==='some'?`${V[S.home].name}: only ${H.k} of ${H.n} descriptions list this sound`:'',H&&H.word?`${V[S.home].name} example: ${H.word.w} ${H.word.ipa} ${H.word.gl}`:'',Tc&&Tc.word?`${V[T].name} example: ${Tc.word.w} ${Tc.word.ipa} ${Tc.word.gl}`:'',Tc&&Tc.s==='like'?`${V[T].name} says ${Tc.ch} like ${C[Tc.to].ipa}`:''].filter(Boolean).join('\n');
+    q('.off').textContent=(H&&H.off)||(Tc&&Tc.off)?'!':'';
+    const wset=(b,z,v)=>{ if(z&&z.word){b.innerHTML=wordHTML(z,v);b.dataset.wv=v;b.dataset.wc=id;b.classList.toggle('robot',!z.word.human);b.title=`${z.word.w}: ${z.word.gl}`+(z.word.human?'':' (robot voice)');}else{b.innerHTML='';delete b.dataset.wv} };
+    wset(q('.w.h'),H,S.home); wset(q('.w.t'),cmp?Tc:null,T);
+    let x='';
+    if(H&&H.s==='like') x=`${V[S.home].name} says it like ${esc(C[H.to].ipa)}`;
+    else if(k==='gain'){ const n=V[S.home].near[id]; x=`not in ${V[S.home].name}`+(n&&V[S.home].cells[n]?` · you may hear ${glyph(V[S.home].cells[n],S.home)}`:''); }
+    else if(k==='loss') x=Tc&&Tc.s==='like'?`${V[T].name} says it like ${esc(C[Tc.to].ipa)}`:`not in ${V[T].name}`;
+    q('.x').innerHTML=x;
   });
-  reorder(); if(selected)showDetail(selected);
-  const box=document.getElementById('diff'); if(!box)return;
-  if(!cmp){box.innerHTML=`<div style="grid-column:1/-1"><h3>Your mouth in ${V[S.home].name}</h3><div class="empty">Drag the slider to pick a second language. Each letter then shows both: ${V[S.home].name} on the left, the other on the right. Press a letter to hear both, one after the other.</div></div>`;return}
+  const box=document.getElementById('diff');
+  if(!cmp){box.innerHTML='';box.hidden=true;return}
+  box.hidden=false;
   const H=V[S.home].cells, Tc=V[T].cells;
   const gain=D.cells.filter(c=>!has(H[c.id])&&has(Tc[c.id])), loss=D.cells.filter(c=>has(H[c.id])&&!has(Tc[c.id]));
-  const li=(arr,v)=>arr.length?`<div class="list">${arr.map(c=>`<button data-play="${v}" data-pc="${c.id}"><span class="g" style="color:${col(v)}">${short(V[v].cells[c.id])}</span><small>${c.ipa}</small></button>`).join('')}</div>`:'<div class="empty">None.</div>';
-  box.innerHTML=`<div><h3>${V[T].name} adds ${gain.length} sound${gain.length===1?'':'s'} ${V[S.home].name} lacks</h3>${li(gain,T)}<button class="rowplay" data-seq="gain">▶ hear them all</button></div>
-    <div><h3>${V[S.home].name} has ${loss.length} sound${loss.length===1?'':'s'} ${V[T].name} lacks</h3>${li(loss,S.home)}<button class="rowplay" data-seq="loss">▶ hear them all</button></div>`;
+  const li=(arr,v)=>arr.length?`<div class="list">${arr.map(c=>`<button type="button" data-play="${v}" data-pc="${c.id}" aria-label="${esc(c.ipa)}, ${esc(label(c))}"><span class="g" style="color:${col(v)}">${glyph(V[v].cells[c.id],v)}</span><small>${esc(colName(c))}</small></button>`).join('')}</div>`:'<div class="empty">None.</div>';
+  box.innerHTML=`<section><h2>${V[T].name} adds ${gain.length} sound${gain.length===1?'':'s'} ${V[S.home].name} lacks</h2>${li(gain,T)}<button class="rowplay" type="button" data-seq="gain">▶ Hear all</button></section>
+    <section><h2>${V[S.home].name} has ${loss.length} sound${loss.length===1?'':'s'} ${V[T].name} lacks</h2>${li(loss,S.home)}<button class="rowplay" type="button" data-seq="loss">▶ Hear all</button></section>`;
   box.dataset.gain=gain.map(c=>c.id).join(','); box.dataset.loss=loss.map(c=>c.id).join(',');
+  if(selected) showDetail(selected);
 }
+
+// ---------- mouth ----------
 function moveMouth(id){
-  const c=C[id]; const head=document.getElementById('head'); if(!head)return;
-  const place=c.row!=null?D.rows[c.row]:({n15:'back',n16:'back',n17:'back',n1C:'teeth',n2B:'lips',n21:'curled',n22:'curled','0x34':'curled','0x31':'teeth','0x29':'teeth',ts:'teeth',dz:'teeth',ng:'back','nd.':'curled',nd:'teeth',mb:'lips'})[id];
-  tg.style.d=tPath(TONGUE[place]); const closed=place==='lips'&&id!=='n2B'; lu.style.d=lipU(closed); ll.style.d=lipL(closed);
-  head.querySelectorAll('.place').forEach(p=>p.classList.toggle('on',p.dataset.p===place));
+  const c=C[id]; const place=c.row!=null?D.rows[c.row]:PLACE_OF[id];
+  head.querySelectorAll('[data-p]').forEach(p=>p.classList.toggle('on',p.dataset.p===place));
   head.classList.remove('nose','puff','buzz'); void head.offsetWidth;
   const m=c.col; if(m===4||/^[ᵑⁿᵐ]/.test(c.ipa))head.classList.add('nose'); if(m===1||m===3||/ʰ|ʱ/.test(c.ipa))head.classList.add('puff');
   if(m===2||m===3||m===4||m===6||/[gbdzɣɖʒ]/.test(c.ipa))head.classList.add('buzz');
-  const bits=[rowWords[place]]; if(head.classList.contains('nose'))bits.push('air through the nose'); if(head.classList.contains('puff'))bits.push('a puff of air'); if(head.classList.contains('buzz'))bits.push('throat buzzes');
-  cap.innerHTML=`<b>${c.ipa}</b>: ${bits.join(', ')}.`;
+  const bits=[rowWords[place]]; if(head.classList.contains('nose'))bits.push('air through the nose'); if(head.classList.contains('puff'))bits.push('a puff of air'); if(head.classList.contains('buzz'))bits.push('the throat buzzes');
+  cap.innerHTML=`<b>${esc(c.ipa)}</b>: ${bits.join(', ')}.`;
 }
 
-// ---------- C ----------
-function renderC(){
-  const o=order(); let h='<div class="score"><table><thead><tr><th class="rh">sound</th>'+o.map((v,i)=>`<th data-i="${i}" class="${i===0?'home':''}">${V[v].name}<span class="d" style="width:${Math.max(4,(1-D.dist[S.home][v])*36)}px"></span></th>`).join('')+'</tr></thead><tbody>';
-  const groups=[...D.rows.map((r,ri)=>[rowWords[r],D.cells.filter(c=>c.block==='main'&&c.row===ri).sort((a,b)=>a.col-b.col)]),...Object.entries(BLOCKS).map(([b,n])=>[n,D.cells.filter(c=>c.block===b)])];
-  for(const [g,cs] of groups){ h+=`<tr class="grp"><th colspan="${o.length+1}">${g}</th></tr>`;
-    for(const c of cs){ h+=`<tr data-row="${c.id}" class="${S.pinned===c.id?'pinned':''}"><th class="rh" data-pin="${c.id}"><span class="ipa">${c.ipa}</span><span class="lab">${label(c)}</span></th>`;
-      o.forEach((v,i)=>{ const x=V[v].cells[c.id]; const k=x?x.s:'absent';
-        h+=`<td class="${k} ${i===0?'home':''}" data-i="${i}" data-v="${v}" data-c="${c.id}" title="${x&&x.word?x.ch+' ('+x.word+')':x&&x.s==='like'?'said like '+C[x.to].ipa:''}">${x?`<span class="g" style="color:${col(v)}">${x.word?x.ch.slice(0,2)+'…':x.ch}</span>${k==='like'?`<small>→${C[x.to].ipa}</small>`:''}`:''}</td>` });
-      h+='</tr>' } }
-  stage.innerHTML=h+'</tbody></table></div><p class="note">Press a sound name to pin its row. Then drag the slider: each language you pass plays that sound.</p>';
+// ---------- detail ----------
+function langBlock(v,id){
+  const L=V[v], c=L.cells[id], nm=L.name;
+  let say='';
+  if(!c){ const n=L.near&&L.near[id]; const nc=n&&L.cells[n];
+    say=`${nm} does not have this sound.`+(nc?` A ${nm} speaker will probably hear it as ${glyph(nc,v)} (${esc(C[n].ipa)}).`:''); }
+  else if(c.s==='own') say=`${nm} writes this sound with ${glyph(c,v)}.`;
+  else if(c.s==='said') say=`${nm} says this sound but has no letter of its own for it`+(c.word?`. You hear it in ${wordHTML(c,v)} /${esc(noSlash(c.word.ipa))}/.`:'.');
+  else if(c.s==='some') say=c.k?`Only ${c.k} of ${c.n} descriptions of ${nm} list this sound. Some speakers use it, often in borrowed words.`:`${nm} has the letter ${glyph(c,v)}, and the robot voice reads it this way, but no description of ${nm} lists the sound.`;
+  else if(c.s==='like') say=`${nm} writes ${glyph(c,v)}, but speakers say it like ${esc(C[c.to].ipa)}.`;
+  const acts=[];
+  if(c&&c.a&&AU[c.a]) acts.push(`<button type="button" data-dl="${v}">▶ Letter${c.off?' (robot voice, may be wrong)':' (robot voice)'}</button>`);
+  if(c&&c.word&&AU[c.word.a]) acts.push(`<button type="button" data-dw="${v}">▶ ${wordHTML(c,v)}${c.word.human?', a real speaker':' (robot voice)'}</button>`);
+  const cell=C[id]; if(cell.row!=null&&cell.col>=1&&cell.col<=3){ const base=D.cells.find(z=>z.block==='main'&&z.row===cell.row&&z.col===0); const bc=base&&L.cells[base.id];
+    if(bc&&c&&has(c)) acts.push(`<button type="button" data-pair="${v}" data-base="${base.id}">▶ ${glyph(bc,v)} then ${glyph(c,v)}: hear the difference</button>`); }
+  const vt=c&&c.votes;
+  const src=vt?`<details><summary>Where this comes from</summary><table class="src"><tr><td>PHOIBLE</td><td>${esc(vt.phoible)} descriptions list it${vt.allo?' (also as a variant)':''}</td></tr>${vt.espeak!=null?`<tr><td>espeak-ng</td><td>plays ${esc(vt.espeak||'?')}</td></tr>`:''}${vt.epitran!=null?`<tr><td>Epitran</td><td>reads ${esc(vt.epitran||'?')}</td></tr>`:''}${c.word?`<tr><td>Wiktionary</td><td>${wordHTML(c,v)} /${esc(noSlash(c.word.ipa))}/ ${esc(c.word.gl)}</td></tr>`:''}${c.hand?`<tr><td>hand fix</td><td>${esc(c.hand)}</td></tr>`:''}</table></details>`:'';
+  return `<section class="lang"><h3>${nm}</h3><p>${say}</p>${c&&c.off?`<p class="warn">! ${esc(c.off)}</p>`:''}<div class="acts">${acts.join('')}</div>${c&&c.word&&c.word.credit?`<p class="cred">Recording of ${wordHTML(c,v)}: ${esc(c.word.credit.artist)}, <a href="${esc(c.word.credit.page)}" target="_blank" rel="noopener">${esc(c.word.credit.license)}</a></p>`:''}${src}</section>`;
 }
-function updateC(){ const i=Math.round(S.p); stage.querySelectorAll('[data-i]').forEach(el=>el.classList.toggle('tgt',+el.dataset.i===i)); }
+function showDetail(id){
+  selected=id; const c=C[id], T=tgt(), H=V[S.home].cells[id], Tc=T!==S.home?V[T].cells[id]:null;
+  const how=c.col!=null?`${rowWords[D.rows[c.row]]}; ${HOW[c.col]}.`:c.label+'.';
+  detail.innerHTML=`<h2 class="dh"><span class="big">${glyph(H,S.home)}${T!==S.home?` <span style="color:${col(T)}">${glyph(Tc,T)}</span>`:''}</span><span class="ipa">${esc(c.ipa)}</span></h2><p class="how">${how}</p>${langBlock(S.home,id)}${T!==S.home?langBlock(T,id):''}`;
+  detail.hidden=false; head.classList.add('open');
+  announce.textContent=`${c.ipa}. ${how} `+[...detail.querySelectorAll('.lang p:first-of-type')].map(p=>p.textContent).join(' ');
+}
 
 // ---------- wiring ----------
-async function render(){
-  await ensure();
-  vlabel.textContent=`${S.variant} — ${VARIANTS[S.variant]}`; header();
-  ({A:renderA,B:renderB,C:renderC})[S.variant](); update();
-}
-let lastI=0;
-function update(){
-  updateReadout();
-  if(S.variant==='A'){updateTiles('.tile');drawArrows()}
-  if(S.variant==='B')updateChips();
-  if(S.variant==='C')updateC();
-}
-homes.onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;S.home=b.dataset.h;S.p=0;slider.value=0;try{localStorage.setItem('varna-home',S.home)}catch(e){};render()};
-slider.oninput=async()=>{S.p=+slider.value;const i=Math.round(S.p);await ensure();update();
-  if(i!==lastI){lastI=i; if(S.pinned){const v=order()[i]; if(V[v].cells[S.pinned])playSeq([[v,S.pinned]],stage.querySelector(`[data-c="${S.pinned}"][data-v="${v}"]`))}}};
+async function render(){ await ensure(); header(); renderRows(); update(); }
+function update(){ updateReadout(); updateChips(); }
+homes.onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;S.home=b.dataset.h;S.p=0;slider.value=0;selected=null;detail.hidden=true;head.classList.remove('open');try{localStorage.setItem('varna-home',S.home)}catch(e){};render()};
+slider.oninput=async()=>{S.p=+slider.value;await ensure();update()};
 ticks.onclick=e=>{const s=e.target.closest('[data-i]');if(!s)return;S.p=+s.dataset.i;slider.value=S.p;slider.oninput()};
+closeHead.onclick=()=>head.classList.remove('open');
 stage.onclick=e=>{
   const dl=e.target.closest('[data-dl]'); if(dl){playSeq([[dl.dataset.dl,selected]],null);return}
   const dw=e.target.closest('[data-dw]'); if(dw){playSeq([[dw.dataset.dw,selected,true]],null);return}
-  const wd=e.target.closest('[data-wv]'); if(wd){e.stopPropagation();playSeq([[wd.dataset.wv,wd.dataset.wc,true]],wd.closest('.chip'));showDetail(wd.dataset.wc);moveMouth(wd.dataset.wc);return}
-  const pl=e.target.closest('[data-play]'); if(pl){playSeq([[pl.dataset.play,pl.dataset.pc]],pl);moveMouth(pl.dataset.pc);return}
+  const pr=e.target.closest('[data-pair]'); if(pr){playSeq([[pr.dataset.pair,pr.dataset.base],[pr.dataset.pair,selected]],null);return}
+  const wd=e.target.closest('[data-wv]'); if(wd){playSeq([[wd.dataset.wv,wd.dataset.wc,true]],wd.closest('.chip'));moveMouth(wd.dataset.wc);showDetail(wd.dataset.wc);return}
+  const pl=e.target.closest('[data-play]'); if(pl){playSeq([[pl.dataset.play,pl.dataset.pc]],pl);moveMouth(pl.dataset.pc);showDetail(pl.dataset.pc);return}
   const sq=e.target.closest('[data-seq]'); if(sq){const ids=(diff.dataset[sq.dataset.seq]||'').split(',').filter(Boolean);const v=sq.dataset.seq==='gain'?tgt():S.home;playSeq(ids.map(id=>[v,id]),sq);return}
   const rp=e.target.closest('[data-row]'); if(rp){const T=tgt(),L=[];D.cells.filter(c=>c.block==='main'&&c.row===+rp.dataset.row).sort((a,b)=>a.col-b.col).forEach(c=>{if(V[S.home].cells[c.id])L.push([S.home,c.id]);if(T!==S.home&&V[T].cells[c.id])L.push([T,c.id])});playSeq(L,rp);return}
-  const pin=e.target.closest('[data-pin]'); if(pin){S.pinned=S.pinned===pin.dataset.pin?null:pin.dataset.pin;renderC();updateC();return}
-  const td=e.target.closest('td[data-v]'); if(td){playSeq([[td.dataset.v,td.dataset.c]],td);return}
-  const t=e.target.closest('[data-id]'); if(t)press(t.dataset.id,t);
+  const t=e.target.closest('.chip .press'); if(t){const ch=t.closest('.chip');press(ch.dataset.id,ch)}
 };
-const setV=k=>{S.variant=k;history.replaceState(null,'','#'+k);render()};
-const keys=Object.keys(VARIANTS);
-prev.onclick=()=>setV(keys[(keys.indexOf(S.variant)+2)%3]); next.onclick=()=>setV(keys[(keys.indexOf(S.variant)+1)%3]);
-addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role=button]')){e.preventDefault();e.target.click();return}
-  if(e.target.closest('input,textarea,[contenteditable]'))return;if(e.key==='ArrowLeft')prev.onclick();if(e.key==='ArrowRight')next.onclick()});
-addEventListener('resize',()=>S.variant==='A'&&drawArrows());
-document.fonts&&document.fonts.ready.then(()=>S.variant==='A'&&drawArrows());
 render();
 </script>
 

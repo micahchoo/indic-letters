@@ -5,8 +5,9 @@ where the mouth makes it: rows go from the throat to the lips, and columns show
 how the air moves (plain, puff, buzz, nose, hiss and so on).
 
 Pick your home language. Then move the slider to compare it with another
-language. Each letter shows both languages side by side. Press a letter to hear
-both sounds and to see where the data comes from.
+language. Each letter shows both languages side by side in eight fixed columns, one per
+way the air moves. Press a letter to hear both sounds, hear it against its plain
+neighbour, and see where the data comes from.
 
 Live site: <https://micahchoo.github.io/indic-letters/>
 
@@ -21,7 +22,9 @@ Assamese, Bishnupriya Manipuri, Odia, Telugu, Kannada, Malayalam, Tamil, Sinhala
 | Dashed outline | The language says this sound but has no letter of its own for it (Tamil *g* in அகம்). |
 | Faded letter | The language has the letter, but speakers say it like another sound (Bengali ষ is said *sh*). |
 | Hatched, with "2/5" | Only some descriptions of the language list this sound. Some speakers use it. |
-| **!** | espeak-ng plays this letter differently from the chart. Press it to hear a real word instead. |
+| Coloured border | When comparing: the other language has this sound and yours does not. The chip says what you will probably hear instead. |
+| **!** | The robot voice (espeak-ng) plays this letter differently from the chart. Press it to hear a real word instead. |
+| ⚙ after a word | No recording of a real speaker; the robot voice reads the word. |
 
 ## Where the data comes from
 
