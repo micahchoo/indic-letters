@@ -52,7 +52,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);mar
 .chip .frac{position:absolute;top:2px;right:6px;font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
 .chip .off{position:absolute;top:1px;left:6px;font-size:11px;font-weight:700;color:var(--warn)}
 .chip .ws{display:flex;gap:6px;font-size:10px}
-.chip .w{font-family:var(--indic);color:var(--muted);text-decoration:underline dotted;cursor:pointer;padding:1px 2px;border-radius:3px}
+.chip .w{font:inherit;font-family:var(--indic);font-size:10px;background:none;border:0;color:var(--muted);text-decoration:underline dotted;cursor:pointer;padding:1px 2px;border-radius:3px}
 .chip .w.human::after{content:" ●";color:var(--accent);font-size:8px}
 .chip .w:hover{color:var(--fg)}
 .mslots .chip{height:auto;min-height:62px;padding-block:8px 6px;display:grid;justify-items:center;align-content:center;gap:2px}
@@ -97,7 +97,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);mar
 
 /* ---------- B: Mouth ---------- */
 .mouth{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:18px;align-items:start}
-@media (max-width:720px){.mouth{grid-template-columns:1fr}}
+@media (max-width:720px){.mouth{grid-template-columns:1fr}.mouth .head{position:static}.ticks span{display:none}.ticks span.on{display:block;flex:none;width:100%;text-align:left}}
 .head{position:sticky;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
 .head svg{width:100%;height:auto;display:block}
 .head .cap{font-size:13px;line-height:1.45;min-height:3em}
@@ -276,7 +276,7 @@ function header(){
   const o=order(); ticks.innerHTML=o.map((v,i)=>`<span data-i="${i}">${i===0?'● ':''}${V[v].name}</span>`).join('');
   legend.innerHTML=`<span><i></i>has a letter</span><span><i class="said"></i>said, not written</span><span><i class="like"></i>written, said like another</span><span><i class="fill"></i>gap filled by the other language</span><span><i class="lost"></i>the other language lacks it</span><span><i class="some"></i>some speakers (n of m descriptions)</span><span><b style="color:var(--warn)">!</b> espeak-ng audio may be off</span>`;
 }
-function readout(){
+function updateReadout(){ const readout=document.getElementById('readout');
   const T=tgt(); ticks.querySelectorAll('span').forEach((s,i)=>s.classList.toggle('on',i===Math.round(S.p)));
   const H=V[S.home].cells, Tc=V[T].cells;
   if(T===S.home){ const n=Object.values(H).filter(has).length;
@@ -351,7 +351,7 @@ function renderB(){
   h+=`<div class="mrow"><div class="rl">Extras<small>borrowed and rare sounds</small></div><div class="mslots">`+D.cells.filter(c=>c.block!=='main').map(c=>chipHTML(c)).join('')+'</div></div></div></div>';
   stage.innerHTML=h;
 }
-const chipHTML=c=>`<button class="chip" data-id="${c.id}" style="--fam:var(--f-${FAM[c.col]??'plain'})" aria-label="${c.ipa}, ${label(c)}"><span class="pair"><span class="g h"></span><span class="sep"></span><span class="g t"></span></span><span class="x"></span><span class="ws"><span class="w h"></span><span class="w t"></span></span><span class="m">${c.col!=null?D.cols[c.col]:c.ipa}</span><span class="frac"></span><span class="off"></span></button>`;
+const chipHTML=c=>`<div class="chip" role="button" tabindex="0" data-id="${c.id}" style="--fam:var(--f-${FAM[c.col]??'plain'})" aria-label="${c.ipa}, ${label(c)}"><span class="pair"><span class="g h"></span><span class="sep"></span><span class="g t"></span></span><span class="x"></span><span class="ws"><button class="w h" type="button"></button><button class="w t" type="button"></button></span><span class="m">${c.col!=null?D.cols[c.col]:c.ipa}</span><span class="frac"></span><span class="off"></span></div>`;
 const short=x=>x?(x.ch||'◌'):'';
 const HOW=['the air is stopped, then let go','stopped, then let go with a puff of air','stopped, with the throat buzzing','buzzing, then a breathy puff','the air goes out through the nose','the tongue tip taps or rolls','the air flows smoothly around the tongue','the air rubs through a narrow gap'];
 let selected=null;
@@ -398,12 +398,12 @@ function updateChips(){
     gh.textContent=H?short(H):'—'; gh.style.color=H?'var(--fg)':'';
     gt.textContent=Tc?short(Tc):'—'; gt.style.color=Tc?col(T):'';
     el.style.setProperty('--tc',cmp?col(T):'transparent');
-    const fr=[H,Tc].filter(z=>z&&z.s==='some').map(z=>z.k+'/'+z.n); el.querySelector('.frac').textContent=fr.join(' ');
+    const fr=[H,Tc].filter(z=>z&&z.s==='some').map(z=>z.k?z.k+'/'+z.n:'letter only'); el.querySelector('.frac').textContent=fr.join(' ');
     if(H&&H.s==='some'||Tc&&Tc.s==='some') el.classList.add('hsome');
     el.querySelector('.off').textContent=(H&&H.off)||(Tc&&Tc.off)?'!':'';
     const wset=(sp,z,v)=>{ if(z&&z.word){sp.textContent=z.word.w;sp.dataset.wv=v;sp.dataset.wc=id;sp.classList.toggle('human',!!z.word.human);sp.hidden=false}else{sp.textContent='';sp.hidden=true} };
     wset(el.querySelector('.w.h'),H,S.home); wset(el.querySelector('.w.t'),cmp?Tc:null,T);
-    x.textContent=k==='gain'?`not in ${V[S.home].name}`:k==='loss'?`not in ${V[T].name}`:'';
+    x.textContent=k==='gain'?(H&&H.s==='like'?`${V[S.home].name} says it like ${C[H.to].ipa}`:`not in ${V[S.home].name}`):k==='loss'?(Tc&&Tc.s==='like'?`${V[T].name} says it like ${C[Tc.to].ipa}`:`not in ${V[T].name}`):'';
     el.title=[H&&H.word?`${V[S.home].name}: ${H.ch} (${H.word})`:'',H&&H.note||'',H&&H.s==='like'?`${V[S.home].name} says ${H.ch} like ${C[H.to].ipa}`:'',H&&H.off?`${V[S.home].name}: ${H.off}`:'',Tc&&Tc.off?`${V[T].name}: ${Tc.off}`:'',H&&H.s==='some'?`${V[S.home].name}: only ${H.k} of ${H.n} descriptions list this sound`:'',H&&H.word?`${V[S.home].name} example: ${H.word.w} ${H.word.ipa} ${H.word.gl}`:'',Tc&&Tc.word?`${V[T].name} example: ${Tc.word.w} ${Tc.word.ipa} ${Tc.word.gl}`:'',Tc&&Tc.s==='like'?`${V[T].name} says ${Tc.ch} like ${C[Tc.to].ipa}`:''].filter(Boolean).join('\n');
   });
   reorder(); if(selected)showDetail(selected);
@@ -449,7 +449,7 @@ async function render(){
 }
 let lastI=0;
 function update(){
-  readout();
+  updateReadout();
   if(S.variant==='A'){updateTiles('.tile');drawArrows()}
   if(S.variant==='B')updateChips();
   if(S.variant==='C')updateC();
@@ -472,7 +472,8 @@ stage.onclick=e=>{
 const setV=k=>{S.variant=k;history.replaceState(null,'','#'+k);render()};
 const keys=Object.keys(VARIANTS);
 prev.onclick=()=>setV(keys[(keys.indexOf(S.variant)+2)%3]); next.onclick=()=>setV(keys[(keys.indexOf(S.variant)+1)%3]);
-addEventListener('keydown',e=>{if(e.target.closest('input,textarea,[contenteditable]'))return;if(e.key==='ArrowLeft')prev.onclick();if(e.key==='ArrowRight')next.onclick()});
+addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role=button]')){e.preventDefault();e.target.click();return}
+  if(e.target.closest('input,textarea,[contenteditable]'))return;if(e.key==='ArrowLeft')prev.onclick();if(e.key==='ArrowRight')next.onclick()});
 addEventListener('resize',()=>S.variant==='A'&&drawArrows());
 document.fonts&&document.fonts.ready.then(()=>S.variant==='A'&&drawArrows());
 render();

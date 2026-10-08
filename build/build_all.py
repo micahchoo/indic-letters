@@ -89,6 +89,7 @@ for v in KAI:
     k=P[v]['ph'].get(cid,0); allo=cid in P[v]['al']; old=V[v]['cells'].get(cid)
     letter=old['ch'] if old and old['s'] in('own','like') else None
     if cid=='0x34' and v=='ml': letter='ഴ'
+    if cid=='0x36' and v=='si': letter='ශ'
     frac=k/n
     hand=None
     if v=='ta' and cid=='0x31': k=max(k,2); frac=k/n; hand='PHOIBLE notation hides this sound'
@@ -102,7 +103,7 @@ for v in KAI:
     elif letter: s='like'
     else: continue
     e=dict(s=s,k=k,n=n,ipa=c['ipa'])
-    if letter: e['ch']=letter; e['a']=old['a']
+    if letter: e['ch']=letter; e['a']=old['a'] if old and old.get('a') else espeak_word(v,letter+chr({'Deva':0x93E,'Beng':0x9BE,'Guru':0xA3E,'Gujr':0xABE,'Orya':0xB3E,'Taml':0xBBE,'Telu':0xC3E,'Knda':0xCBE,'Mlym':0xD3E,'Sinh':0xDCF}[V[v]['script']]))
     # where does a written-but-not-said letter land?
     if s=='like':
       cand=[old.get('to') if old and old['s']=='like' else None, E.get(v,{}).get(cid,{}).get('cell')]
@@ -114,6 +115,7 @@ for v in KAI:
       ep=E.get(v,{}).get(cid,{}).get('cell')
       if es!=want and want: e['off']=f"espeak-ng plays this as {CELLS[es]['ipa'] if es in CELLS else '?'}"+(f"; Epitran agrees with the chart ({CELLS[want]['ipa']})" if ep==want and want in CELLS else '')
       if old.get('note'): e['off']=old['note']
+    if v=='si' and cid=='0x36': e['off']='espeak-ng plays this as s'; hand='PHOIBLE lists ʃ for ශ; espeak-ng reads it as s'
     b=pick(v,cid,letter if s=='own' else None) or (pick(v,cid) if s!='like' else None)
     if s=='like' and letter: b=pick(v,e['to'],letter)
     if b:
@@ -121,7 +123,7 @@ for v in KAI:
       key=fetch(aud,'h:'+w) if aud else None
       e['word']=dict(w=w,ipa=ipa,gl=gl,a=key or espeak_word(v,w),human=bool(key))
       if key: e['word']['file']=urllib.parse.unquote(re.sub(r'/transcoded(/.+?)/[^/]+\.mp3$',r'\1',aud).rsplit('/',1)[1])
-    if 'a' in e: AUD[e['a']]=AU[e['a']]
+    if 'a' in e and e['a'] in AU: AUD[e['a']]=AU[e['a']]
     ep=E.get(v,{}).get(cid,{})
     e['votes']=dict(espeak=(CELLS[old['to']]['ipa'] if old and old['s']=='like' and old.get('to') in CELLS else (c['ipa'] if old and old['s']=='own' else None)) if letter else None,
                     epitran=(CELLS[ep['cell']]['ipa'] if ep.get('cell') in CELLS else ep.get('raw')) if letter else None,
@@ -148,10 +150,14 @@ json.dump(dict(out['bpy'],audio=AUD),open('proto/lang/bpy.json','w'),ensure_asci
 W8={'own':1,'said':1,'some':.5}
 def wset(v): return {k:W8.get(x['s'],0) for k,x in out[v]['cells'].items() if W8.get(x['s'],0)}
 def jd(a,b):
-  A,B=wset(a),wset(b); ks=set(A)|set(B)
-  return round(1-sum(min(A.get(k,0),B.get(k,0)) for k in ks)/sum(max(A.get(k,0),B.get(k,0)) for k in ks),3)
+  # feature distance: how far each sound of a is from its nearest sound in b, averaged, both ways (PanPhon)
+  A,B=wset(a),wset(b)
+  f=lambda X,Y: sum(w*min(fd(x,y) for y in Y) for x,w in X.items())/sum(X.values())
+  return round((f(A,B)+f(B,A))/2,3)
 order=[v['id'] for v in D['voices']]
 distm={a:{b:jd(a,b) for b in order} for a in order}
+mx=max(x for r in distm.values() for x in r.values())
+distm={a:{b:round(x/mx,3) for b,x in r.items()} for a,r in distm.items()}  # 1 = the most distant pair
 core=dict(rows=D['rows'],cols=D['cols'],cells=D['cells'],voices=[dict(id=v,name=out[v]['name'],script=out[v]['script'],src=out[v]['src']) for v in order],dist=distm)
 open('proto/core.js','w').write('window.CORE='+json.dumps(core,ensure_ascii=False)+';\n')
 for a in ['ta','hi','bn','si']: print(a,'nearest:',sorted(distm[a],key=distm[a].get)[1:6])
